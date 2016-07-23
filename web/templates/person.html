@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+
+{% block title %}VIVO static - {{ details.name }}{% endblock %}
+
+{% block content %}
+<div id="content">
+    <h1>{{ details.name }}</h1>
+    {% if details.picture %}
+        <img src="{{ details.picture }}"/>
+    {% endif %}
+
+    {% if details.orcid %}
+    <img src="https://orcid.org/sites/default/files/images/orcid_16x16(1).gif"/>{{ details.orcid }}
+    {% endif %}
+
+    <div id="profile">
+        <ul class="nav nav-tabs">
+            <li><a href="#overview" data-toggle="tab">Overview</a></li>
+            <li><a href="#pubs" data-toggle="tab">Publications</a></li>
+            <li><a href="#ccc" data-toggle="tab">CCC</a></li>
+        </ul>
+        <div class="tab-content" id="tabs">
+            <div class="tab-pane" id="overview">
+                    {% if details.overview %}
+                        {{ details.overview|safe }}
+                    {% else %}
+                        {{ details.description }}
+                    {% endif %}
+            </div>
+            <div class="tab-pane" id="pubs">
+                <ul class="accordion">
+                {% for group in publications|sort(attribute='year', reverse=True)|groupby('year') %}
+                    <li>
+                        <a class="toggle" href="javascript:void(0);">{{ group.grouper }}</a>
+                        <ul class="inner">
+                        {% for pub in group.list %}
+                            <li class="pub">
+                             {% include 'snippets/pub.html' %}
+                            </li>
+                        {% endfor %}
+                        </ul>
+                    </li>
+                {% endfor %}
+            </div>
+            <div class="tab-pane" id="ccc">
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+

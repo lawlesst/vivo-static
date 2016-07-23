@@ -1,0 +1,29 @@
+{% extends "bootstrap/base.html" %}
+{% block title %}VIVO static{% endblock %}
+
+{% block head %}
+{{super()}}
+<link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+{% endblock %}
+
+{% block styles %}
+{{super()}}
+<link rel="stylesheet"
+      href="{{url_for('.static', filename='style.css')}}">
+{% endblock %}
+
+{% block navbar %}
+<div class="navbar navbar-default">
+  <a href="{{ url_for('index') }}">VIVO static</a>
+</div>
+{% endblock %}
+
+{% block content %}
+{% endblock %}
+
+
+{% block scripts %}
+{{super()}}
+<script src="{{url_for('.static', filename='app.js')}}"></script>
+</script>
+{% endblock %}

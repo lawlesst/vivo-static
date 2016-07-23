@@ -1,0 +1,61 @@
+@import url(https://fonts.googleapis.com/css?family=Montserrat);
+
+body {
+    font-family: "Montserrat", "Lucida Sans Unicode","Lucida Grande", Geneva, helvetica, sans-serif;
+    padding:0;
+    margin:0;
+}
+.navbar {
+    background: #505050;
+    border-radius: 0 !important;
+    padding:0;
+    margin:0;
+}
+
+#content {
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#pubs ul {
+    list-style: none;
+}
+
+#pubs li {
+    margin-bottom: 1em;
+}
+
+#pubs .inner {
+        padding-left: 1em;
+        overflow: hidden;
+        display: none;
+}
+#pubs .show {
+    display: block;
+}
+
+
+#pubs a.toggle {
+        width: 100%;
+        display: block;
+        background: rgba(0,0,0,0.78);
+        color: #fefefe;
+        padding: .75em;
+        border-radius: 0.15em;
+        transition: background .3s ease;
+    }
+
+li.pub {
+    margin-top: 1em;
+}
+
+li.pub h5 {
+    display: inline;
+    font-weight: bold;
+    font-size: larger;
+}
+
+li.pub span {
+    color: #939393;
+}

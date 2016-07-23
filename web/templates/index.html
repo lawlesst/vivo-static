@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div id="content">
+
+
+<ul>
+    {% for person in people %}
+        <li><a href="{{ url_for('person', pid=person.local) }}">{{ person.name }}</a></li>
+    {% endfor %}
+
+</ul>
+
+</div>
+{% endblock %}

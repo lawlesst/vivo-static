@@ -1,0 +1,6 @@
+<h5>{{ pub.title }}</h5>
+<span class="authors">{{ pub.authors }}</span>{% if pub.venue %}<span>, in {{ pub.venue }}</span>{% endif %}<span>, {{ pub.date }}.</span>
+<br/>
+{% if pub.doi %}
+<a href="http://dx.doi.org/{{ pub.doi }}">{{ pub.doi }}</a>
+{% endif %}
