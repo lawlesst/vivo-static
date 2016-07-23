@@ -3,17 +3,20 @@
 {% block title %}VIVO static - {{ details.name }}{% endblock %}
 
 {% block content %}
-<div id="content">
-    <h1>{{ details.name }}</h1>
-    {% if details.picture %}
-        <img src="{{ details.picture }}"/>
-    {% endif %}
+<div class="row" id="intro-spacer"></div>
+<div id="content" class="row">
+    <div class="col-md-4">
+        {% if details.picture %}
+            <img class="thumbnail" src="{{ details.picture }}"/>
+        {% endif %}
+        <h1>{{ details.name }}</h1>
+        {% if details.orcid %}
+            <h5><a href="http://orcid.org/{{ details.orcid }}" target="_vstatic"><img src="https://orcid.org/sites/default/files/images/orcid_16x16(1).gif"/>{{ details.orcid }}</a></h5>
+        {% endif %}
 
-    {% if details.orcid %}
-    <img src="https://orcid.org/sites/default/files/images/orcid_16x16(1).gif"/>{{ details.orcid }}
-    {% endif %}
+    </div>
 
-    <div id="profile">
+    <div id="profile" class="col-md-8">
         <ul class="nav nav-tabs">
             <li><a href="#overview" data-toggle="tab">Overview</a></li>
             <li><a href="#pubs" data-toggle="tab">Publications</a></li>
@@ -29,7 +32,7 @@
             </div>
             <div class="tab-pane" id="pubs">
                 <ul class="accordion">
-                {% for group in publications|sort(attribute='year', reverse=True)|groupby('year') %}
+                {% for group in publications|groupby('year')|sort(reverse=True) %}
                     <li>
                         <a class="toggle" href="javascript:void(0);">{{ group.grouper }}</a>
                         <ul class="inner">

@@ -1,4 +1,5 @@
 import json
+import string
 
 import werkzeug
 import flask
@@ -10,6 +11,9 @@ app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 Bootstrap(app)
 
+#AZ = string.lowercase
+#AZ_GROUPS = [AZ[i:i+3] for i in xrange(0, 26, 3)]
+
 import backend
 
 @app.route("/")
@@ -17,7 +21,8 @@ def index():
     people = backend.get_people()
     return render_template(
         'index.html',
-        people=people
+        people=people,
+        #groups=AZ_GROUPS
     )
 
 @app.route("/person/<pid>.html")

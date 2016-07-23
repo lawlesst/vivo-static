@@ -4,12 +4,48 @@
 <div id="content">
 
 
-<ul>
+<!-- <ul>
     {% for person in people %}
         <li><a href="{{ url_for('person', pid=person.local) }}">{{ person.name }}</a></li>
     {% endfor %}
 
-</ul>
+</ul> -->
+
+    <div id="people-index" class="container-fluid">
+        <div class="row">
+            {% for group in people|groupby('nidx') %}
+                <div class="col-md-6">
+                    <h2>{{ group.grouper|upper }}</h2>
+                    <ul class="list-unstyled">
+                    {% for person in group.list %}
+                        <li>
+                            <div class="overview">
+                                <!-- <div class="img-wrapper">
+                                    {% if person.picture %}<img class="idx" src="{{ person.picture }}" />{% endif %}
+                                </div> -->
+                                <div class="details">
+                                    <h5>
+                                    <a href="{{ url_for('person', pid=person.local) }}">{{ person.name }}</a></h5>
+                                </div>
+                                <div style="clear:both"></div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+<!-- <div class="row" id="index">
+  {% for grp in groups %}
+    {% for ltr in grp %}
+        <div class="col-md-4 index-header">
+            <h2>{{ ltr|upper }}</h2>
+        </div>
+    {% endfor %}
+  {% endfor %}
+</div> -->
 
 </div>
 {% endblock %}

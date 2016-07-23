@@ -6,16 +6,39 @@ body {
     margin:0;
 }
 .navbar {
-    background: #505050;
+    /*background: #505050;*/
     border-radius: 0 !important;
+    border: none;
     padding:0;
     margin:0;
+    min-height: 10em;
+    background-color:black;
+    background-image:
+    radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+    radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+    radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px),
+    radial-gradient(rgba(255,255,255,.4), rgba(255,255,255,.1) 2px, transparent 30px);
+    background-size: 550px 550px, 350px 350px, 250px 250px, 150px 150px;
+    background-position: 0 0, 40px 60px, 130px 270px, 70px 100px;
+}
+
+.navbar h1 a {
+    color: white;
+    margin-left: 2em;
+    margin-top: 2em;
 }
 
 #content {
     width: 90%;
     margin-left: auto;
     margin-right: auto;
+    margin:0;
+    padding:0;
+    margin-top: 2em;
+}
+
+#profile {
+    margin-top: 1em;
 }
 
 #pubs ul {
@@ -58,4 +81,51 @@ li.pub h5 {
 
 li.pub span {
     color: #939393;
+}
+
+.tab-content {
+    margin-top: 2em;
+}
+
+img.thumbnail {
+    width: 125px;
+    border-radius: 50%;
+    margin-top: -5em;
+}
+
+#people-index {
+    margin-left: 2em;
+}
+
+#people-index h2 {
+    border-bottom: 2px solid;
+    width: 75%;
+}
+
+#people-index .details {
+    height: 2em;
+}
+
+#people-index.img-wrapper {
+    width: 10%;
+    float: left;
+}
+
+#people-index.details {
+    margin-left: 100px;
+}
+
+#people-index.overview {
+    margin-bottom: 2em;
+}
+
+#people-index img.idx {
+    width: 75px;
+    border-radius: 50%;
+    float:left;
+    display: inline;
+}
+
+#people-index h5.name {
+    margin-left: 1em;
 }
