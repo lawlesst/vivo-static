@@ -55,7 +55,7 @@ def get_people():
     rq = """
     select distinct ?p ?name ?ln ?picture
     where {
-        ?p a foaf:Person ;
+        ?p a vivo:FacultyMember ;
            rdfs:label ?name ;
            vivo:relatedBy ?aship .
         ?aship a vivo:Authorship .
@@ -112,21 +112,22 @@ def get_pubs(pid):
     """
     uri = D[pid]
     rq = """
-    select ?pub ?title ?date ?authorList ?doi ?pmid ?venue
+    select ?pub ?title ?date ?year ?authorList ?doi ?pmid ?venue
     where {
         ?aship a vivo:Authorship ;
             vivo:relates ?person, ?pub .
         ?pub a bibo:Document ;
             rdfs:label ?title ;
-            wos:authorList ?authorList ;
             vivo:dateTimeValue ?dtv .
-        ?dtv rdfs:label ?date .
+        ?dtv vivo:dateTime ?date .
         OPTIONAL {
             ?pub vivo:hasPublicationVenue ?pv .
             ?pv rdfs:label ?venue .
         }
         OPTIONAL { ?pub bibo:doi ?doi }
         OPTIONAL { ?pub bibo:pmid ?pmid }
+        OPTIONAL { ?pub wos:authorList ?authorList }
+        BIND( year(?date) as ?year )
     }
     #ORDER BY DESC(?date)
     #LIMIT 10
@@ -135,12 +136,12 @@ def get_pubs(pid):
     pubs = [
         dict(
             title=r.title.toPython(),
-            authors=r.authorList.toPython(),
+            authors=_gv(r, 'authorList'),
             date=r.date.toPython(),
             doi=_gv(r, 'doi'),
             pmid=_gv(r, 'pmid'),
             venue=_gv(r, 'venue'),
-            year=int(r.date[:4])
+            year=r.year
         ) for r in rsp
     ]
     return pubs
