@@ -1,3 +1,12 @@
+""""
+This is the data access layer.
+
+Queries are run to fetch data from the VIVO store and converted
+to Python data structures - lists and dictionaries - that are then
+passed off to the templates.
+"""
+
+
 import os
 
 from rdflib import Graph, Namespace, Literal, URIRef
