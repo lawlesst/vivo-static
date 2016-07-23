@@ -1,20 +1,35 @@
-import json
-import string
+"""
+Flask app.
 
-import werkzeug
-import flask
-from flask import Flask, request
-from flask import render_template
+- defines routes
+- calls backend to query VIVO store
+- passes data to templates
+
+"""
+
+from flask import Flask
+from flask import render_template, url_for
 from flask_bootstrap import Bootstrap
 
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 Bootstrap(app)
 
-#AZ = string.lowercase
-#AZ_GROUPS = [AZ[i:i+3] for i in xrange(0, 26, 3)]
-
 import backend
+
+#http://flask.pocoo.org/snippets/40/
+@app.context_processor
+def override_url_for():
+    return dict(url_for=dated_url_for)
+
+def dated_url_for(endpoint, **values):
+    if endpoint == 'static':
+        filename = values.get('filename', None)
+        if filename:
+            file_path = os.path.join(app.root_path,
+                                     endpoint, filename)
+            values['q'] = int(os.stat(file_path).st_mtime)
+    return url_for(endpoint, **values)
 
 @app.route("/")
 def index():
@@ -22,7 +37,6 @@ def index():
     return render_template(
         'index.html',
         people=people,
-        #groups=AZ_GROUPS
     )
 
 @app.route("/person/<pid>.html")

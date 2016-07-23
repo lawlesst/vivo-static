@@ -6,6 +6,10 @@ activaTab('overview');
 
 //accordian code
 //https://codepen.io/brenden/pen/Kwbpyj
+
+//show first year of pubs on load
+$('ul.accordion li:first ul').addClass('show')
+
 $('.toggle').click(function(e) {
     e.preventDefault();
 

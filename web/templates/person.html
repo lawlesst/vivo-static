@@ -11,7 +11,7 @@
         {% endif %}
         <h1>{{ details.name }}</h1>
         {% if details.orcid %}
-            <h5><a href="http://orcid.org/{{ details.orcid }}" target="_vstatic"><img src="https://orcid.org/sites/default/files/images/orcid_16x16(1).gif"/>{{ details.orcid }}</a></h5>
+            <h5 class="orcid"><a href="http://orcid.org/{{ details.orcid }}" target="_vstatic"><img src="https://orcid.org/sites/default/files/images/orcid_16x16(1).gif"/>{{ details.orcid }}</a></h5>
         {% endif %}
 
     </div>
@@ -20,7 +20,7 @@
         <ul class="nav nav-tabs">
             <li><a href="#overview" data-toggle="tab">Overview</a></li>
             <li><a href="#pubs" data-toggle="tab">Publications</a></li>
-            <li><a href="#ccc" data-toggle="tab">CCC</a></li>
+            <!-- <li><a href="#ccc" data-toggle="tab">CCC</a></li> -->
         </ul>
         <div class="tab-content" id="tabs">
             <div class="tab-pane" id="overview">
@@ -45,8 +45,8 @@
                     </li>
                 {% endfor %}
             </div>
-            <div class="tab-pane" id="ccc">
-            </div>
+            <!-- <div class="tab-pane" id="ccc">
+            </div> -->
         </div>
     </div>
 

@@ -28,7 +28,21 @@ vds = Dataset(store=store)
 vds.namespace_manager = ns_mgr
 
 
+def _gv(row, key):
+    """
+    Helper to get value from a SPARQL result row.
+    """
+    v = getattr(row, key)
+    if v is not None:
+        return v.toPython()
+    else:
+        return None
+
+
 def get_people():
+    """
+    Get all the people with publications in the VIVO system.
+    """
     rq = """
     select distinct ?p ?name ?ln ?picture
     where {
@@ -39,8 +53,8 @@ def get_people():
         BIND(STRAFTER(str(?p), "http://vivo.school.edu/individual/") as ?ln)
         OPTIONAL { ?p wos:photo ?picture }
     }
-    #ORDER BY ?name
-    #LIMIT 20
+    ORDER BY RAND()
+    LIMIT 75
     """
     #rsp = vds.query(rq.replace("?startswith", "\"^a\""))
     #print rsp.graph.serialize(format="turtle")
@@ -57,6 +71,9 @@ def get_people():
 
 
 def get_person(pid):
+    """
+    Get person profile information.
+    """
     uri = D[pid]
     rq = """
         select ?name ?description ?picture ?overview ?orcid
@@ -79,14 +96,11 @@ def get_person(pid):
         overview=vdata.overview,
     )
 
-def _gv(row, key):
-    v = getattr(row, key)
-    if v is not None:
-        return v.toPython()
-    else:
-        return None
 
 def get_pubs(pid):
+    """
+    Get publications for a person.
+    """
     uri = D[pid]
     rq = """
     select ?pub ?title ?date ?authorList ?doi ?pmid ?venue
@@ -106,7 +120,7 @@ def get_pubs(pid):
         OPTIONAL { ?pub bibo:pmid ?pmid }
     }
     #ORDER BY DESC(?date)
-    LIMIT 10
+    #LIMIT 10
     """
     rsp = vds.query(rq, initBindings={'person': uri})
     pubs = [
