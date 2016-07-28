@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# VIVO data namespace
+export DATA_NAMESPACE=''
+export VIVO_URL=''
+export VIVO_EMAIL=''
+export VIVO_PASSWORD=''

@@ -55,10 +55,10 @@ def get_people():
     rq = """
     select distinct ?p ?name ?ln ?picture
     where {
-        ?p a vivo:FacultyMember ;
-           rdfs:label ?name ;
-           vivo:relatedBy ?aship .
-        ?aship a vivo:Authorship .
+        ?p a foaf:Person ;
+           rdfs:label ?name .
+           #vivo:relatedBy ?aship .
+        #?aship a vivo:Authorship .
         BIND(STRAFTER(str(?p), "http://vivo.school.edu/individual/") as ?ln)
         OPTIONAL { ?p wos:photo ?picture }
     }

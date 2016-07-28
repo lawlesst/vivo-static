@@ -1,0 +1,3 @@
+Frozen-Flask
+Flask-Bootstrap
+vivo-rdflib-sparqlstore
