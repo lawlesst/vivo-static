@@ -9,7 +9,7 @@ Presenters: Ted Lawless, Alexandre Rademaker and Fabricio Chalub
 
 ### Install & Configure
 
-A running VIVO instance is required and access to the VIVO SPARQL API.
+A running VIVO instance populated with people and publications data is required as well as access to the VIVO SPARQL API.
 
 The static app requires Python 2.7 (make work with 3.x but not tested) and the Python packaging tool pip.
 
@@ -43,3 +43,12 @@ To test your sample site, `cd build` and run `python -m SimpleHTTPServer 8000` t
 
 
 ### Application details
+
+The application consists of routes and template handling in `app.py`.
+
+`backend.py` contains the queries sent to the VIVO store for each of the views. This is where a majority of the application logic takes place. If you are not seeing data when running the site, this is where changes should be made.
+
+The `templates` directory contains the Flask templates that generate the HTML from the Python objects created from SPARQL queries.
+
+
+*** More to come ***
