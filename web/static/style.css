@@ -131,3 +131,12 @@ img.thumbnail {
 .orcid img {
     margin-right: .25em;
 }
+
+ul.positions {
+    margin-left: 1em;
+    font-size: smaller;
+}
+
+span.email {
+    /*margin-left: .25em;*/
+}

@@ -88,7 +88,7 @@ def get_person(pid):
     """
     uri = D[pid]
     rq = """
-        select ?name ?description ?picture ?overview ?orcid
+        select ?name ?description ?picture ?overview ?orcid ?email
         where {
             ?p a foaf:Person ;
                     rdfs:label ?name ;
@@ -97,6 +97,12 @@ def get_person(pid):
             #OPTIONAL { ?p wos:photo ?picture }
             #OPTIONAL { ?p wos:orcid ?orcid }
             OPTIONAL { ?p vivo:overview ?overview }
+            OPTIONAL { 
+                ?p obo:ARG_2000028 ?vci .
+                ?vci a vcard:Individual .
+                ?vci vcard:hasEmail ?vce .
+                ?vce vcard:email ?email .
+            }
             OPTIONAL {
                 ?p vitropublic:mainImage ?mi .
                 ?mi vitropublic:thumbnailImage ?ti .
@@ -109,6 +115,7 @@ def get_person(pid):
     return dict(
         name=vdata.name,
         description=vdata.description,
+        email=vdata.email,
         orcid=vdata.orcid.toPython().split('/')[-1],
         picture=vdata.picture,
         overview=vdata.overview,
@@ -121,7 +128,7 @@ def get_pubs(pid):
     """
     uri = D[pid]
     rq = """
-    select distinct ?pub ?title ?date ?authorList ?doi ?pmid ?venue
+    select ?pub ?title ?date ?authorList ?doi ?pmid ?venue
     where {
         ?aship a vivo:Authorship ;
             vivo:relates ?person, ?pub .
@@ -131,7 +138,7 @@ def get_pubs(pid):
         ?dtv vivo:dateTime ?date .
         OPTIONAL {
             ?pub vivo:hasPublicationVenue ?pv .
-            ?pv rdfs:label ?venue .
+            ?pv rdfs:label ?hasPublicationVenue .
         }
         OPTIONAL { ?pub bibo:doi ?doi }
         OPTIONAL { ?pub bibo:pmid ?pmid }
@@ -150,4 +157,47 @@ def get_pubs(pid):
             year=r.date.toPython()[:4]
         ) for r in rsp
     ]
-    return pubs
+    # hack to avoid duplicate results from SPARQL query
+    # http://stackoverflow.com/a/9427216
+    return [dict(t) for t in set([tuple(d.items()) for d in pubs])]
+
+
+def get_positions(pid):
+    """
+    Get positions for a person
+    """
+    uri = D[pid]
+    rq = """
+    select ?pos ?title (sample(?orgName) as ?o) ?startDate ?endDate
+    where {
+      ?pos a vivo:Position ;
+           rdfs:label ?title ;
+           vivo:dateTimeInterval ?dti ;
+           vivo:relates ?person, ?org .
+      ?org a foaf:Organization ;
+           rdfs:label ?orgName .
+      ?dti vivo:start ?start .
+      ?start vivo:dateTime ?startDate .
+      OPTIONAL {
+        ?dti vivo:end ?end .
+        ?end vivo:dateTime ?endDate .
+      }
+    }
+    GROUP BY ?person ?pos ?title ?org ?startDate ?endDate
+    ORDER BY DESC(?start)
+    """
+    rsp = vds.query(rq, initBindings={'person': uri})
+    positions = []
+    for r in rsp:
+        end = None
+        if r.endDate is not None:
+            end = r.endDate.toPython()
+        positions.append(
+            dict(
+                title=r.title,
+                org=r.o,
+                start=r.startDate.toPython(),
+                end = end,
+            )
+        )
+    return positions

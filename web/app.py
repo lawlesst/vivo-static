@@ -12,8 +12,12 @@ from flask import render_template, url_for
 from flask_bootstrap import Bootstrap
 
 app = Flask(__name__)
+app.debug = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 Bootstrap(app)
+
+# from flask.ext.profile import Profiler
+# Profiler(app)
 
 import backend
 
@@ -44,9 +48,10 @@ def person(pid):
     return render_template(
         'person.html',
         details=backend.get_person(pid),
-        publications=backend.get_pubs(pid)
+        publications=backend.get_pubs(pid),
+        positions=backend.get_positions(pid)
     )
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
