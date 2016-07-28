@@ -22,6 +22,7 @@ Bootstrap(app)
 import backend
 
 #http://flask.pocoo.org/snippets/40/
+# This allows us to use urls that end with .html
 @app.context_processor
 def override_url_for():
     return dict(url_for=dated_url_for)
@@ -34,6 +35,8 @@ def dated_url_for(endpoint, **values):
                                      endpoint, filename)
             values['q'] = int(os.stat(file_path).st_mtime)
     return url_for(endpoint, **values)
+
+# end
 
 @app.route("/")
 def index():
