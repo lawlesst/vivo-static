@@ -93,10 +93,15 @@ def get_person(pid):
             ?p a foaf:Person ;
                     rdfs:label ?name ;
                     vivo:orcidId ?orcid .
-            OPTIONAL { ?p wos:description ?description }
-            OPTIONAL { ?p wos:photo ?picture }
-            OPTIONAL { ?p wos:orcid ?orcid }
+            #OPTIONAL { ?p wos:description ?description }
+            #OPTIONAL { ?p wos:photo ?picture }
+            #OPTIONAL { ?p wos:orcid ?orcid }
             OPTIONAL { ?p vivo:overview ?overview }
+            OPTIONAL {
+                ?p vitropublic:mainImage ?mi .
+                ?mi vitropublic:thumbnailImage ?ti .
+                ?ti vitropublic:downloadLocation ?picture
+            }
         }
     """
     rsp = vds.query(rq, initBindings={'p': uri})
@@ -104,7 +109,7 @@ def get_person(pid):
     return dict(
         name=vdata.name,
         description=vdata.description,
-        orcid=vdata.orcid,
+        orcid=vdata.orcid.toPython().split('/')[-1],
         picture=vdata.picture,
         overview=vdata.overview,
     )
@@ -116,11 +121,11 @@ def get_pubs(pid):
     """
     uri = D[pid]
     rq = """
-    select ?pub ?title ?date ?year ?authorList ?doi ?pmid ?venue
+    select distinct ?pub ?title ?date ?authorList ?doi ?pmid ?venue
     where {
         ?aship a vivo:Authorship ;
             vivo:relates ?person, ?pub .
-        ?pub a obo:IAO_0000030 ;
+        ?pub a bibo:Document ;
             rdfs:label ?title ;
             vivo:dateTimeValue ?dtv .
         ?dtv vivo:dateTime ?date .
@@ -131,10 +136,7 @@ def get_pubs(pid):
         OPTIONAL { ?pub bibo:doi ?doi }
         OPTIONAL { ?pub bibo:pmid ?pmid }
         OPTIONAL { ?pub wos:authorList ?authorList }
-        BIND( year(?date) as ?year )
     }
-    #ORDER BY DESC(?date)
-    #LIMIT 10
     """
     rsp = vds.query(rq, initBindings={'person': uri})
     pubs = [

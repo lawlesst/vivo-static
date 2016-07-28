@@ -20,8 +20,6 @@ SKOS = Namespace('http://www.w3.org/2004/02/skos/core#')
 VCARD = Namespace('http://www.w3.org/2006/vcard/ns#')
 OBO = Namespace('http://purl.obolibrary.org/obo/')
 
-CONVERIS = Namespace('http://localhost/ontology/converis#')
-
 WOS = Namespace("http://data.wokinfo.com/ontology/wos#")
 SCHEMA = Namespace("http://schema.org/")
 

@@ -1,6 +1,8 @@
-<h5>{{ pub.title }}</h5>
-    {% if pub.authors %}<span class="authors">{{ pub.authors|truncate() }}</span>{% endif %}{% if pub.venue %}<span>, in {{ pub.venue }}</span>{% endif %}<span>, {{ pub.date }}.</span>
+<h5>{{ pub.title }}</h5>{% if pub.authors %}<span class="authors">{{ pub.authors|truncate() }}</span>{% endif %}{% if pub.venue %}<span>, in {{ pub.venue }}</span>{% endif %}<span>, {{ pub.date }}.</span>
 <br/>
 {% if pub.doi %}
-    <a href="http://dx.doi.org/{{ pub.doi }}" target="_vstatic">{{ pub.doi }}</a>
+    DOI: <a href="http://dx.doi.org/{{ pub.doi }}" target="_vstatic">{{ pub.doi }}</a>
+{% endif %}
+{% if pub.pmid %}
+    PMID: <a href="http://pmid.gov/{{ pub.pmid }}" target="_vstatic">{{ pub.pmid }}</a>
 {% endif %}
