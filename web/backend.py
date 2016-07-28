@@ -28,6 +28,8 @@ password = os.environ['VIVO_PASSWORD']
 read = os.environ['VIVO_URL'] + '/api/sparqlQuery'
 update = os.environ['VIVO_URL'] + '/api/sparqlUpdate'
 
+DATA_NAMESPACE = os.environ['DATA_NAMESPACE']
+
 #Setup the VIVO store
 store = VIVOUpdateStore(email, password)
 store.open((read, update))
@@ -59,12 +61,13 @@ def get_people():
            rdfs:label ?name .
            #vivo:relatedBy ?aship .
         #?aship a vivo:Authorship .
-        BIND(STRAFTER(str(?p), "http://vivo.school.edu/individual/") as ?ln)
+        BIND(STRAFTER(str(?p), "--dns--") as ?ln)
         OPTIONAL { ?p wos:photo ?picture }
     }
-    ORDER BY RAND()
-    LIMIT 75
-    """
+    ORDER BY ?name
+    #ORDER BY RAND()
+    #LIMIT 75
+    """.replace("--dns--", D)
     #rsp = vds.query(rq.replace("?startswith", "\"^a\""))
     #print rsp.graph.serialize(format="turtle")
     out = [
@@ -88,7 +91,8 @@ def get_person(pid):
         select ?name ?description ?picture ?overview ?orcid
         where {
             ?p a foaf:Person ;
-                    rdfs:label ?name .
+                    rdfs:label ?name ;
+                    vivo:orcidId ?orcid .
             OPTIONAL { ?p wos:description ?description }
             OPTIONAL { ?p wos:photo ?picture }
             OPTIONAL { ?p wos:orcid ?orcid }
@@ -116,7 +120,7 @@ def get_pubs(pid):
     where {
         ?aship a vivo:Authorship ;
             vivo:relates ?person, ?pub .
-        ?pub a bibo:Document ;
+        ?pub a obo:IAO_0000030 ;
             rdfs:label ?title ;
             vivo:dateTimeValue ?dtv .
         ?dtv vivo:dateTime ?date .
@@ -137,11 +141,11 @@ def get_pubs(pid):
         dict(
             title=r.title.toPython(),
             authors=_gv(r, 'authorList'),
-            date=r.date.toPython(),
+            date=r.date.toPython()[:10],
             doi=_gv(r, 'doi'),
             pmid=_gv(r, 'pmid'),
             venue=_gv(r, 'venue'),
-            year=r.year
+            year=r.date.toPython()[:4]
         ) for r in rsp
     ]
     return pubs

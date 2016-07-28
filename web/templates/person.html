@@ -26,8 +26,10 @@
             <div class="tab-pane" id="overview">
                     {% if details.overview %}
                         {{ details.overview|safe }}
-                    {% else %}
+                    {% elif details.description %}
                         {{ details.description }}
+                    {% else %}
+                        N/A
                     {% endif %}
             </div>
             <div class="tab-pane" id="pubs">
