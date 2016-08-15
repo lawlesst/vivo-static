@@ -22,6 +22,11 @@
             <li>{% include 'snippets/position.html' %}</li>
         </ul>
         {% endfor %}
+        {% for url in websites %}
+        <ul class="websites">
+            <li><a href="{{ url.url }}">{{ url.label }}</li>
+        </ul>
+        {% endfor %}
 
 
     </div>
@@ -64,8 +69,10 @@
 
 </div>
 
+{% if jsonld %}
 <script type="application/ld+json">
 {{ jsonld|safe }}
 </script>
+{% endif %}
 {% endblock %}
 

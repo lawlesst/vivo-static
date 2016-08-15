@@ -64,7 +64,12 @@ class Profile(object):
                 vivo:middleName ?middle ;
                 tmp:orcid ?orcid ;
                 vivo:overview ?overview ;
-                foaf:thumbnail ?picture .
+                foaf:thumbnail ?picture ;
+                tmp:hasWebsite ?vcUrl .
+              # websites
+              ?vcUrl rdfs:label ?websiteLabel ;
+                     tmp:url ?website .
+              # publications
               ?aship a vivo:Authorship ;
                     vivo:relates ?person, ?pub .
               ?pub a bibo:Document ;
@@ -98,8 +103,15 @@ class Profile(object):
                 OPTIONAL { ?person vivo:overview ?overview }
                 BIND(strafter(str(?orcidIri), ".org/") AS ?orcid)
               }
+              # websites
+              UNION {
+                ?person obo:ARG_2000028 ?vci .
+                ?vci vcard:hasURL ?vcUrl .
+                ?vcUrl vcard:url ?website .
+                OPTIONAL {?vcUrl rdfs:label ?websiteLabel }
+              }
               # pubs
-              UNION{
+              UNION {
                 ?person a foaf:Person .
                    ?aship a vivo:Authorship ;
                         vivo:relates ?person, ?pub .
@@ -151,6 +163,26 @@ class Profile(object):
             'overview': self._gv(VIVO.overview),
             'picture': self._gv(FOAF.thumbnail)
         }
+
+    def websites(self):
+        rq = """
+        select ?label ?url
+        where {
+            ?person tmp:hasWebsite ?ws .
+            ?ws tmp:url ?url .
+            OPTIONAL { ?ws rdfs:label ?label }
+        }
+        ORDER BY ?label
+        """
+        rsp = self.model.query(rq, initBindings={'person': self.uri})
+        out = []
+        for row in rsp:
+            url = row.url.toPython()
+            label = _gv(row, "label")
+            if label is None:
+                label = url
+            out.append(dict(url=url, label=label))
+        return out
 
     def _date_value(self, value, year=False):
         if value is None:
@@ -229,7 +261,7 @@ class Profile(object):
         """
         Schema.org representation of the profile.
         """
-        rq = """
+        rq = u"""
         CONSTRUCT {
             ?person a schema:Person ;
                 schema:name ?name ;
@@ -267,7 +299,10 @@ class Profile(object):
         g += self.model.query(pub_rq, initBindings={'person':self.uri}).graph
         #print g.serialize(format="turtle")
         jsonld = g.serialize(format="json-ld", context="http://schema.org", indent=2)
-        return jsonld
+        try:
+            return jsonld.encode('utf-8', 'ignore')
+        except:
+            return None
 
 def _gv(row, key):
     """
@@ -287,17 +322,18 @@ def get_people():
     rq = """
     select distinct ?p ?name ?ln ?picture
     where {
-        ?p a foaf:Person ;
-           rdfs:label ?name .
         ?aship a vivo:Authorship ;
             vivo:relates ?p, ?pub .
         ?pub a bibo:Document .
+        ?p a foaf:Person ;
+           rdfs:label ?name .
         BIND(STRAFTER(str(?p), "individual/") as ?ln)
-        OPTIONAL { ?p foaf:thumbnail ?picture }
+        OPTIONAL {
+               ?p a foaf:Person .
+               ?p foaf:thumbnail ?picture
+         }
     }
     ORDER BY ?name
-    #ORDER BY RAND()
-    #LIMIT 75
     """
     out = [
         dict(
