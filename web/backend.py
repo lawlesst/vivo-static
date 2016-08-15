@@ -276,28 +276,8 @@ class Profile(object):
             BIND(IRI(CONCAT("http://orcid.org/", ?orcid)) as ?orcidUrl)
         }
         """
-        g = self.model.query(rq, initBindings={'person': self.uri}).graph
-
-        # Get pubs
-        pub_rq = """
-        CONSTRUCT {
-            ?pub a schema:ScholarlyArticle ;
-                schema:name ?title ;
-                schema:sameAs ?doiUrl ;
-                schema:author ?person .
-        }
-        WHERE {
-            ?aship a vivo:Authorship .
-            ?aship vivo:relates ?person, ?pub .
-            ?pub a bibo:Document ;
-                rdfs:label ?title ;
-                bibo:doi ?doi .
-            BIND(IRI(CONCAT("http://dx.doi.org/", ?doi)) as ?doiUrl)
-        }
-        """
-        #g += self.model.query(pub_rq, initBindings={'person':self.uri}).graph
-        #print g.serialize(format="turtle")
-        jsonld = g.serialize(format="json-ld", context="http://schema.org", indent=2)
+        person = self.model.query(rq, initBindings={'person': self.uri}).graph
+        jsonld = person.serialize(format="json-ld", context="http://schema.org", indent=2)
         try:
             return jsonld.encode('utf-8', 'ignore')
         except:
@@ -332,7 +312,6 @@ def get_people():
                ?p foaf:thumbnail ?picture
          }
     }
-    ORDER BY ?name
     """
     out = [
         dict(
