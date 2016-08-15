@@ -16,13 +16,12 @@ app.debug = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 Bootstrap(app)
 
-# from flask.ext.profile import Profiler
-# Profiler(app)
-
 import backend
 
-#http://flask.pocoo.org/snippets/40/
+#
 # This allows us to use urls that end with .html
+# http://flask.pocoo.org/snippets/40/
+#
 @app.context_processor
 def override_url_for():
     return dict(url_for=dated_url_for)
@@ -48,7 +47,6 @@ def index():
 @app.route("/person/<pid>.html")
 def person(pid):
     person = backend.Profile(pid)
-    print person.websites()
     return render_template(
         'person.html',
         person=person.profile(),

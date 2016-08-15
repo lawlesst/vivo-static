@@ -1,4 +1,4 @@
-##vivo-static
+## vivo-static
 
 This repository contains code for a presentation at the [2016 VIVO conference](http://www.vivoconference.org/).
 
@@ -40,6 +40,17 @@ vivo-static uses a tools called Frozen-Flask to genrate the HTML and CSS necessa
 To generate the static site, from within the "web" directory run `python freeze.py`. This will create a `build` directory of the static assets for the site. Depending on the amount of data you have loaded into VIVO, this could take a while. 
 
 To test your sample site, `cd build` and run `python -m SimpleHTTPServer 8000` to simulate hosting a static site. 
+
+#### Deploying to Amazon S3
+If you want to deploy your site to Amazon S3, install the AWS command line tool: 
+
+`pip install awscli`
+
+Run `aws configure` to setup the client.
+
+Then sync your build directory to your S3 bucket:
+
+`aws s3 sync build/ s3://yourbucket`
 
 
 ### Application details

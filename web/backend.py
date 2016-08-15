@@ -276,8 +276,7 @@ class Profile(object):
             BIND(IRI(CONCAT("http://orcid.org/", ?orcid)) as ?orcidUrl)
         }
         """
-        g = Graph()
-        g += self.model.query(rq, initBindings={'person': self.uri}).graph
+        g = self.model.query(rq, initBindings={'person': self.uri}).graph
 
         # Get pubs
         pub_rq = """
@@ -296,7 +295,7 @@ class Profile(object):
             BIND(IRI(CONCAT("http://dx.doi.org/", ?doi)) as ?doiUrl)
         }
         """
-        g += self.model.query(pub_rq, initBindings={'person':self.uri}).graph
+        #g += self.model.query(pub_rq, initBindings={'person':self.uri}).graph
         #print g.serialize(format="turtle")
         jsonld = g.serialize(format="json-ld", context="http://schema.org", indent=2)
         try:
