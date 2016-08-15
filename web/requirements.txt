@@ -1,5 +1,6 @@
 Frozen-Flask
 Flask-Bootstrap
+rdflib-jsonld
 vivo-rdflib-sparqlstore
 #for s3 deployment
 awscli

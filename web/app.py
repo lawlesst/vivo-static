@@ -48,11 +48,13 @@ def index():
 @app.route("/person/<pid>.html")
 def person(pid):
     person = backend.Profile(pid)
+    person.schema_org()
     return render_template(
         'person.html',
         person=person.profile(),
         publications=person.publications(),
-        positions=person.positions()
+        positions=person.positions(),
+        jsonld=person.schema_org(),
     )
 
 

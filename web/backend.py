@@ -42,6 +42,11 @@ vds.namespace_manager = ns_mgr
 
 
 class Profile(object):
+    """
+    Build a temporary RDF model of the profile.
+    Use additional SPARQL select queries to find attributes we
+    are interested in.
+    """
 
     def __init__(self, local_name):
         self.local_name = local_name
@@ -69,8 +74,8 @@ class Profile(object):
                 bibo:doi ?doi ;
                 bibo:pmid ?pmid ;
                 vivo:hasPublicationVenue ?pv .
+              ?pv rdfs:label ?venueName .
               ?dtv vivo:dateTime ?date .
-              ?pv rdfs:label ?hasPublicationVenue .
               # positions
               ?pos a vivo:Position ;
                     vivo:relates ?person ;
@@ -104,7 +109,7 @@ class Profile(object):
                     ?dtv vivo:dateTime ?date .
                     OPTIONAL {
                         ?pub vivo:hasPublicationVenue ?pv .
-                        ?pv rdfs:label ?hasPublicationVenue .
+                        ?pv rdfs:label ?venueName .
                     }
                     OPTIONAL { ?pub bibo:doi ?doi }
                     OPTIONAL { ?pub bibo:pmid ?pmid }
@@ -130,31 +135,12 @@ class Profile(object):
               }
             }
         """
-        return vds.query(rq, initBindings=dict(person=self.uri)).graph
+        g = vds.query(rq, initBindings=dict(person=self.uri)).graph
+        return g
 
     def _gv(self, predicate):
         v = self.model.value(subject=self.uri, predicate=predicate)
         return v
-
-    # @property
-    # def name(self):
-    #     return self._gv(RDFS.label)
-
-    # @property
-    # def first(self):
-    #     return self._gv(FOAF.firstName)
-
-    # @property
-    # def last(self):
-    #     return self._gv(FOAF.lastName)
-
-    # @property
-    # def orcid(self):
-    #     return self._gv(predicate=TMP.orcid)
-
-    # @property
-    # def overview(self):
-    #     return self._gv(VIVO.overview)
 
     def profile(self):
         return {
@@ -187,7 +173,7 @@ class Profile(object):
             ?dtv vivo:dateTime ?date .
             OPTIONAL {
                 ?pub vivo:hasPublicationVenue ?pv .
-                ?pv rdfs:label ?hasPublicationVenue .
+                ?pv rdfs:label ?venue .
             }
             OPTIONAL { ?pub bibo:doi ?doi }
             OPTIONAL { ?pub bibo:pmid ?pmid }
@@ -239,6 +225,50 @@ class Profile(object):
             )
         return positions
 
+    def schema_org(self):
+        """
+        Schema.org representation of the profile.
+        """
+        rq = """
+        CONSTRUCT {
+            ?person a schema:Person ;
+                schema:name ?name ;
+                schema:image ?picture ;
+                schema:sameAs ?orcidUrl .
+        }
+        WHERE {
+            ?person a foaf:Person ;
+                rdfs:label ?name .
+            OPTIONAL { ?person foaf:thumbnail ?picture }
+            OPTIONAL { ?person tmp:orcid ?orcid }
+            BIND(IRI(CONCAT("http://orcid.org/", ?orcid)) as ?orcidUrl)
+        }
+        """
+        g = Graph()
+        g += self.model.query(rq, initBindings={'person': self.uri}).graph
+
+        # Get pubs
+        pub_rq = """
+        CONSTRUCT {
+            ?pub a schema:ScholarlyArticle ;
+                schema:name ?title ;
+                schema:sameAs ?doiUrl ;
+                schema:author ?person .
+        }
+        WHERE {
+            ?aship a vivo:Authorship .
+            ?aship vivo:relates ?person, ?pub .
+            ?pub a bibo:Document ;
+                rdfs:label ?title ;
+                bibo:doi ?doi .
+            BIND(IRI(CONCAT("http://dx.doi.org/", ?doi)) as ?doiUrl)
+        }
+        """
+        g += self.model.query(pub_rq, initBindings={'person':self.uri}).graph
+        #print g.serialize(format="turtle")
+        jsonld = g.serialize(format="json-ld", context="http://schema.org", indent=2)
+        return jsonld
+
 def _gv(row, key):
     """
     Helper to get value from a SPARQL result row.
@@ -259,6 +289,9 @@ def get_people():
     where {
         ?p a foaf:Person ;
            rdfs:label ?name .
+        ?aship a vivo:Authorship ;
+            vivo:relates ?p, ?pub .
+        ?pub a bibo:Document .
         BIND(STRAFTER(str(?p), "individual/") as ?ln)
         OPTIONAL { ?p foaf:thumbnail ?picture }
     }
@@ -277,3 +310,8 @@ def get_people():
         for r in vds.query(rq)]
     return out
 
+
+if __name__ == '__main__':
+    import sys
+    p = Profile(sys.argv[1])
+    p.schema_org()
