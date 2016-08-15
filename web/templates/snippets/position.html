@@ -1,1 +1,1 @@
-{{ pos.title }}, {{ pos.org }}. <small>{{ pos.start.strftime('%Y-%m-%d') }}{% if pos.end %} - {{ pos.end.strftime('%Y-%m-%d') }}{% endif %}</small>
+{{ pos.title }}, {{ pos.org }}. <small>{% if pos.start %}{{ pos.start.strftime('%Y-%m-%d') }}{% endif %}{% if pos.end %} - {{ pos.end.strftime('%Y-%m-%d') }}{% endif %}</small>

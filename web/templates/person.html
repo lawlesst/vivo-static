@@ -1,20 +1,20 @@
 {% extends "layout.html" %}
 
-{% block title %}VIVO static - {{ details.name }}{% endblock %}
+{% block title %}VIVO static - {{ person.name }}{% endblock %}
 
 {% block content %}
 <div class="row" id="intro-spacer"></div>
 <div id="content" class="row">
     <div class="col-md-4">
-        {% if details.picture %}
-            <img class="thumbnail" src="{{ details.picture }}"/>
+        {% if person.picture %}
+            <img class="thumbnail" src="{{ person.picture }}"/>
         {% endif %}
-        <h1>{{ details.name }}</h1>
-        {% if details.orcid %}
-            <h5 class="orcid"><a href="http://orcid.org/{{ details.orcid }}" target="_vstatic"><img src="https://orcid.org/sites/default/files/images/orcid_16x16(1).gif"/>{{ details.orcid }}</a></h5>
+        <h1>{{ person.name }}</h1>
+        {% if person.orcid %}
+            <h5 class="orcid"><a href="http://orcid.org/{{ person.orcid }}" target="_vstatic"><img src="https://orcid.org/sites/default/files/images/orcid_16x16(1).gif"/>{{ person.orcid }}</a></h5>
         {% endif %}
-        {% if details.email %}
-            <h5><i class="fa fa-envelope-o" aria-hidden="true"></i><span class="email">{{ details.email }}</span></h5>
+        {% if person.email %}
+            <h5><i class="fa fa-envelope-o" aria-hidden="true"></i><span class="email">{{ person.email }}</span></h5>
         {% endif %}
         <hr/>
         {% for pos in positions %}
@@ -34,10 +34,10 @@
         </ul>
         <div class="tab-content" id="tabs">
             <div class="tab-pane" id="overview">
-                    {% if details.overview %}
-                        {{ details.overview|safe }}
-                    {% elif details.description %}
-                        {{ details.description }}
+                    {% if person.overview %}
+                        {{ person.overview|safe }}
+                    {% elif person.description %}
+                        {{ person.description }}
                     {% else %}
                         n/a
                     {% endif %}
