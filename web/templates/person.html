@@ -13,9 +13,6 @@
         {% if person.orcid %}
             <h5 class="orcid"><a href="http://orcid.org/{{ person.orcid }}" target="_vstatic"><img src="https://orcid.org/sites/default/files/images/orcid_16x16(1).gif"/>{{ person.orcid }}</a></h5>
         {% endif %}
-        {% if person.email %}
-            <h5><i class="fa fa-envelope-o" aria-hidden="true"></i><span class="email">{{ person.email }}</span></h5>
-        {% endif %}
         <hr/>
         {% for pos in positions %}
         <ul class="positions list-unstyled">
