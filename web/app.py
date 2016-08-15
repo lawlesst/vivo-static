@@ -35,8 +35,7 @@ def dated_url_for(endpoint, **values):
                                      endpoint, filename)
             values['q'] = int(os.stat(file_path).st_mtime)
     return url_for(endpoint, **values)
-
-# end
+# end url config
 
 @app.route("/")
 def index():
@@ -48,11 +47,12 @@ def index():
 
 @app.route("/person/<pid>.html")
 def person(pid):
+    person = backend.Profile(pid)
     return render_template(
         'person.html',
-        details=backend.get_person(pid),
-        publications=backend.get_pubs(pid),
-        positions=backend.get_positions(pid)
+        person=person.profile(),
+        publications=person.publications(),
+        positions=person.positions()
     )
 
 

@@ -14,7 +14,7 @@ from rdflib.query import ResultException
 from rdflib.compare import graph_diff
 
 from vstore import VIVOUpdateStore
-from rdflib.namespace import SKOS, RDF
+from rdflib.namespace import SKOS, RDF, RDFS
 from rdflib.graph import Dataset
 
 #from namespaces import rq_prefixes, VIVO
@@ -30,6 +30,8 @@ update = os.environ['VIVO_URL'] + '/api/sparqlUpdate'
 
 DATA_NAMESPACE = os.environ['DATA_NAMESPACE']
 
+from namespaces import FOAF, TMP, VIVO
+
 #Setup the VIVO store
 store = VIVOUpdateStore(email, password)
 store.open((read, update))
@@ -38,6 +40,204 @@ store.open((read, update))
 vds = Dataset(store=store)
 vds.namespace_manager = ns_mgr
 
+
+class Profile(object):
+
+    def __init__(self, local_name):
+        self.local_name = local_name
+        self.uri = D[local_name]
+        self.model = self._generate_model()
+        self.model.namespace_manager = ns_mgr
+
+    def _generate_model(self):
+        rq = """
+        CONSTRUCT {
+              ?person a foaf:Person ;
+                rdfs:label ?name ;
+                foaf:firstName ?first ;
+                foaf:lastName ?last ;
+                vivo:middleName ?middle ;
+                tmp:orcid ?orcid ;
+                vivo:overview ?overview ;
+                foaf:thumbnail ?picture .
+              ?aship a vivo:Authorship ;
+                    vivo:relates ?person, ?pub .
+              ?pub a bibo:Document ;
+                rdfs:label ?title ;
+                vivo:dateTimeValue ?dtv ;
+                wos:authorList ?authorList ;
+                bibo:doi ?doi ;
+                bibo:pmid ?pmid ;
+                vivo:hasPublicationVenue ?pv .
+              ?dtv vivo:dateTime ?date .
+              ?pv rdfs:label ?hasPublicationVenue .
+              # positions
+              ?pos a vivo:Position ;
+                    vivo:relates ?person ;
+                    rdfs:label ?title ;
+                    tmp:positionOrg ?orgName ;
+                    tmp:start ?startDate ;
+                    tmp:end ?endDate .
+            }
+            WHERE {
+              {
+                # person details
+                ?person a foaf:Person ;
+                        rdfs:label ?name ;
+
+                OPTIONAL { ?person foaf:firstName ?first }
+                OPTIONAL { ?person foaf:lastName ?last }
+                OPTIONAL { ?person vivo:orcidId ?orcidIri }
+                OPTIONAL { ?person vivo:middleName ?middle }
+                OPTIONAL { ?person foaf:thumbnail ?picture }
+                OPTIONAL { ?person vivo:overview ?overview }
+                BIND(strafter(str(?orcidIri), ".org/") AS ?orcid)
+              }
+              # pubs
+              UNION{
+                ?person a foaf:Person .
+                   ?aship a vivo:Authorship ;
+                        vivo:relates ?person, ?pub .
+                    ?pub a bibo:Document ;
+                        rdfs:label ?title ;
+                        vivo:dateTimeValue ?dtv .
+                    ?dtv vivo:dateTime ?date .
+                    OPTIONAL {
+                        ?pub vivo:hasPublicationVenue ?pv .
+                        ?pv rdfs:label ?hasPublicationVenue .
+                    }
+                    OPTIONAL { ?pub bibo:doi ?doi }
+                    OPTIONAL { ?pub bibo:pmid ?pmid }
+                    OPTIONAL { ?pub wos:authorList ?authorList }
+              }
+              # positions
+              UNION {
+                  ?pos a vivo:Position ;
+                       rdfs:label ?title ;
+                       vivo:relates ?person, ?org .
+                  ?org a foaf:Organization ;
+                       rdfs:label ?orgName .
+                  OPTIONAL {
+                    ?pos vivo:dateTimeInterval ?dti .
+                    ?dti vivo:start ?start .
+                    ?start vivo:dateTime ?startDate .
+                  }
+                  OPTIONAL {
+                    ?pos vivo:dateTimeInterval ?dti .
+                    ?dti vivo:end ?end .
+                    ?end vivo:dateTime ?endDate .
+                  }
+              }
+            }
+        """
+        return vds.query(rq, initBindings=dict(person=self.uri)).graph
+
+    def _gv(self, predicate):
+        v = self.model.value(subject=self.uri, predicate=predicate)
+        return v
+
+    # @property
+    # def name(self):
+    #     return self._gv(RDFS.label)
+
+    # @property
+    # def first(self):
+    #     return self._gv(FOAF.firstName)
+
+    # @property
+    # def last(self):
+    #     return self._gv(FOAF.lastName)
+
+    # @property
+    # def orcid(self):
+    #     return self._gv(predicate=TMP.orcid)
+
+    # @property
+    # def overview(self):
+    #     return self._gv(VIVO.overview)
+
+    def profile(self):
+        return {
+            'name': self._gv(RDFS.label),
+            'first': self._gv(FOAF.firstName),
+            'last': self._gv(FOAF.lastName),
+            'orcid': self._gv(TMP.orcid),
+            'overview': self._gv(VIVO.overview),
+            'picture': self._gv(FOAF.thumbnail)
+        }
+
+    def _date_value(self, value, year=False):
+        if value is None:
+            return
+        dstring = str(value.toPython())
+        if year is True:
+            return dstring[:4]
+        else:
+            return dstring[:10]
+
+    def publications(self):
+        rq = """
+        select ?pub ?title ?date ?authorList ?doi ?pmid ?venue
+        where {
+            ?aship a vivo:Authorship ;
+                vivo:relates ?person, ?pub .
+            ?pub a bibo:Document ;
+                rdfs:label ?title ;
+                vivo:dateTimeValue ?dtv .
+            ?dtv vivo:dateTime ?date .
+            OPTIONAL {
+                ?pub vivo:hasPublicationVenue ?pv .
+                ?pv rdfs:label ?hasPublicationVenue .
+            }
+            OPTIONAL { ?pub bibo:doi ?doi }
+            OPTIONAL { ?pub bibo:pmid ?pmid }
+            OPTIONAL { ?pub wos:authorList ?authorList }
+        }
+        """
+        rsp = self.model.query(rq, initBindings={'person': self.uri})
+        pubs = [
+            dict(
+                title=r.title.toPython(),
+                authors=_gv(r, 'authorList'),
+                date=self._date_value(r.date),
+                doi=_gv(r, 'doi'),
+                pmid=_gv(r, 'pmid'),
+                venue=_gv(r, 'venue'),
+                year=self._date_value(r.date, year=True)
+            ) for r in rsp
+        ]
+        # hack to avoid duplicate results from SPARQL query
+        # http://stackoverflow.com/a/9427216
+        return [dict(t) for t in set([tuple(d.items()) for d in pubs])]
+
+    def positions(self):
+        rq = """
+        select ?pos ?title ?orgName ?startDate ?endDate
+        where {
+          ?pos a vivo:Position ;
+               rdfs:label ?title ;
+               vivo:relates ?person ;
+               tmp:positionOrg ?orgName .
+           OPTIONAL {
+            ?pos tmp:start ?startDate .
+           }
+           OPTIONAL {
+            ?pos tmp:end ?endDate .
+           }
+        }
+        """
+        rsp = self.model.query(rq, initBindings={'person': self.uri})
+        positions = []
+        for r in rsp:
+            positions.append(
+                dict(
+                    title=r.title,
+                    org=r.orgName,
+                    start=self._date_value(r.startDate, year=True),
+                    end = self._date_value(r.endDate, year=True),
+                )
+            )
+        return positions
 
 def _gv(row, key):
     """
@@ -59,17 +259,13 @@ def get_people():
     where {
         ?p a foaf:Person ;
            rdfs:label ?name .
-           #vivo:relatedBy ?aship .
-        #?aship a vivo:Authorship .
-        BIND(STRAFTER(str(?p), "--dns--") as ?ln)
-        OPTIONAL { ?p wos:photo ?picture }
+        BIND(STRAFTER(str(?p), "individual/") as ?ln)
+        OPTIONAL { ?p foaf:thumbnail ?picture }
     }
     ORDER BY ?name
     #ORDER BY RAND()
     #LIMIT 75
-    """.replace("--dns--", D)
-    #rsp = vds.query(rq.replace("?startswith", "\"^a\""))
-    #print rsp.graph.serialize(format="turtle")
+    """
     out = [
         dict(
             name=r.name,
@@ -81,123 +277,3 @@ def get_people():
         for r in vds.query(rq)]
     return out
 
-
-def get_person(pid):
-    """
-    Get person profile information.
-    """
-    uri = D[pid]
-    rq = """
-        select ?name ?description ?picture ?overview ?orcid ?email
-        where {
-            ?p a foaf:Person ;
-                    rdfs:label ?name ;
-                    vivo:orcidId ?orcid .
-            #OPTIONAL { ?p wos:description ?description }
-            #OPTIONAL { ?p wos:photo ?picture }
-            #OPTIONAL { ?p wos:orcid ?orcid }
-            OPTIONAL { ?p vivo:overview ?overview }
-            OPTIONAL { 
-                ?p obo:ARG_2000028 ?vci .
-                ?vci a vcard:Individual .
-                ?vci vcard:hasEmail ?vce .
-                ?vce vcard:email ?email .
-            }
-            OPTIONAL {
-                ?p vitropublic:mainImage ?mi .
-                ?mi vitropublic:thumbnailImage ?ti .
-                ?ti vitropublic:downloadLocation ?picture
-            }
-        }
-    """
-    rsp = vds.query(rq, initBindings={'p': uri})
-    vdata = [r for r in rsp][0]
-    return dict(
-        name=vdata.name,
-        description=vdata.description,
-        email=vdata.email,
-        orcid=vdata.orcid.toPython().split('/')[-1],
-        picture=vdata.picture,
-        overview=vdata.overview,
-    )
-
-
-def get_pubs(pid):
-    """
-    Get publications for a person.
-    """
-    uri = D[pid]
-    rq = """
-    select ?pub ?title ?date ?authorList ?doi ?pmid ?venue
-    where {
-        ?aship a vivo:Authorship ;
-            vivo:relates ?person, ?pub .
-        ?pub a bibo:Document ;
-            rdfs:label ?title ;
-            vivo:dateTimeValue ?dtv .
-        ?dtv vivo:dateTime ?date .
-        OPTIONAL {
-            ?pub vivo:hasPublicationVenue ?pv .
-            ?pv rdfs:label ?hasPublicationVenue .
-        }
-        OPTIONAL { ?pub bibo:doi ?doi }
-        OPTIONAL { ?pub bibo:pmid ?pmid }
-        OPTIONAL { ?pub wos:authorList ?authorList }
-    }
-    """
-    rsp = vds.query(rq, initBindings={'person': uri})
-    pubs = [
-        dict(
-            title=r.title.toPython(),
-            authors=_gv(r, 'authorList'),
-            date=r.date.toPython()[:10],
-            doi=_gv(r, 'doi'),
-            pmid=_gv(r, 'pmid'),
-            venue=_gv(r, 'venue'),
-            year=r.date.toPython()[:4]
-        ) for r in rsp
-    ]
-    # hack to avoid duplicate results from SPARQL query
-    # http://stackoverflow.com/a/9427216
-    return [dict(t) for t in set([tuple(d.items()) for d in pubs])]
-
-
-def get_positions(pid):
-    """
-    Get positions for a person
-    """
-    uri = D[pid]
-    rq = """
-    select ?pos ?title (sample(?orgName) as ?o) ?startDate ?endDate
-    where {
-      ?pos a vivo:Position ;
-           rdfs:label ?title ;
-           vivo:dateTimeInterval ?dti ;
-           vivo:relates ?person, ?org .
-      ?org a foaf:Organization ;
-           rdfs:label ?orgName .
-      ?dti vivo:start ?start .
-      ?start vivo:dateTime ?startDate .
-      OPTIONAL {
-        ?dti vivo:end ?end .
-        ?end vivo:dateTime ?endDate .
-      }
-    }
-    GROUP BY ?person ?pos ?title ?org ?startDate ?endDate
-    ORDER BY DESC(?start)
-    """
-    rsp = vds.query(rq, initBindings={'person': uri})
-    positions = []
-    for r in rsp:
-        end = None
-        if r.endDate is not None:
-            end = r.endDate.toPython()
-        positions.append(
-            dict(
-                title=r.title,
-                org=r.o,
-                start=r.startDate.toPython(),
-                end = end,
-            )
-        )
-    return positions
