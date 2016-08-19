@@ -35,7 +35,7 @@ The static app requires Python 2.7 (make work with 3.x but not tested) and the P
 
 #### Generating the static site
 
-vivo-static uses a tools called Frozen-Flask to genrate the HTML and CSS necessary for hosting the app as a static site. 
+vivo-static uses a tools called Frozen-Flask to generate the HTML and CSS necessary for hosting the app as a static site. 
 
 To generate the static site, from within the "web" directory run `python freeze.py`. This will create a `build` directory of the static assets for the site. Depending on the amount of data you have loaded into VIVO, this could take a while. 
 
